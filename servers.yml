@@ -1,4 +1,3 @@
-AWSTemplateFormatVersion: 2010-09-09
 Description: 'AWS CloudFormation which creates a load balanced, scalable sample website using Application Load Balancer attached
   to an Auto Scaling group.'
 
@@ -6,7 +5,7 @@ Parameters:
   EnvironmentName:
       Description: An environment name that should match the name used to create the network.
       Type: String
-      Default: Udacity
+      Default: UD-CloudDevOps
 
   AMI:
       Description: 'The Machine Image to be used. Please use an Ubuntu Machine Image Specific to your region. Default is set to an AMI
@@ -21,7 +20,7 @@ Parameters:
     ConstraintDescription: Must be a valid EC2 instance type greater than 4GB RAM.    
 
 Resources:
-  LoadBalancerSG: #This security group allows us to whitelist traffic from the internet to our load balancer
+  LBSG: #This security group allows us to whitelist traffic from the internet to our load balancer
     Type: "AWS::EC2::SecurityGroup"
     Properties:
       GroupDescription: "Load balancer security group"
@@ -49,15 +48,9 @@ Resources:
         Fn::ImportValue: !Sub "${EnvironmentName}-VPCID" 
       SecurityGroupIngress:
         - IpProtocol: tcp
-          SourceSecurityGroupId: !Ref LoadBalancerSG
+          SourceSecurityGroupId: !Ref LBSG
           FromPort: 80
           ToPort: 80
-
-        - IpProtocol: tcp
-          SourceSecurityGroupId: 
-            Fn::ImportValue: !Sub "${EnvironmentName}-BastionSecurityGroupID"
-          FromPort: 22
-          ToPort: 22  
 
   AppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -67,17 +60,17 @@ Resources:
         - Fn::ImportValue: !Sub "${EnvironmentName}-PUB1-SN"
         - Fn::ImportValue: !Sub "${EnvironmentName}-PUB2-SN"
       SecurityGroups:
-        - !Ref LoadBalancerSG  
+        - !Ref LBSG  
 
   AppTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn: 
       - AppLoadBalancer
     Properties:
-      TargetType: instance  #the default is "instance" but we must use ip to forward to fargate
+      TargetType: instance 
       VpcId: 
         Fn::ImportValue: !Sub "${EnvironmentName}-VPCID" 
-      Protocol: HTTP # do not change to HTTPS
+      Protocol: HTTP # don't make HTTPS
       Port: 80
       HealthCheckPath: /
       HealthCheckIntervalSeconds: 10
@@ -98,7 +91,7 @@ Resources:
       Port: 80
       Protocol: HTTP 
  
-  UdacityS3ReadOnlyEC2:
+  S3ReadOnlyEC2:
     Type: AWS::IAM::Role
     Properties:
       ManagedPolicyArns: 
@@ -121,7 +114,7 @@ Resources:
     Properties: 
       Path: "/"
       Roles: 
-        - !Ref UdacityS3ReadOnlyEC2
+        - !Ref S3ReadOnlyEC2
   
   WebServerGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
