@@ -5,4 +5,6 @@ For Deploying a Highly Available Web App with AWS CloudFormation, run the comman
 
 create udagram-Network network.yml network-params.json
 
+create udagram-servers servers.yml servers-params.json
+
 
