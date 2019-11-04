@@ -89,7 +89,19 @@ Resources:
         TargetGroupArn: !Ref AppTargetGroup
       LoadBalancerArn: !Ref AppLoadBalancer
       Port: 80
-      Protocol: HTTP 
+      Protocol: HTTP
+
+  ALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule",
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref AppTargetGroup
+      Conditions:
+      - Field: path-pattern
+        Values: [/]
+      ListenerArn: !Ref 'Listener'
+      Priority: 1
  
   S3ReadOnlyEC2:
     Type: AWS::IAM::Role
@@ -129,8 +141,6 @@ Resources:
       TargetGroupARNs:
       - Ref: AppTargetGroup
       
-    
-
   WebServerScaleUpPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
